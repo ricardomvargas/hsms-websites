@@ -148,29 +148,4 @@ src/components/
 - Company data should be cacheable/refreshable
 - Code should be beginner-friendly and well-organized (learning project)
 
-## Session Status
 
-### Completed
-- [x] Project scaffolded: React + TypeScript + Vite + pnpm (frontend/)
-- [x] Project scaffolded: Python + FastAPI + Uvicorn (backend/)
-- [x] Linting configured: oxlint (frontend), Ruff + Prettier
-- [x] IND sponsor import implemented
-- [x] POST /import does smart sync (insert/update/delete, preserves website_url)
-- [x] GET /companies with pagination (20 per page, page/per_page params)
-- [x] website_url field on companies table with manual PUT endpoint
-- [x] GET /companies/{id}, GET /companies/without-website
-- [x] Frontend cleaned up (removed Vite template boilerplate)
-- [x] Company list with checkboxes (per-row + select-all)
-- [x] Paginator component (Previous, 10 pages, Next; section navigation)
-- [x] Paginator always visible at bottom of screen
-- [x] Page change resets checkbox selections
-- [x] Hook variable names clarified with prefixes (companiesLoading, selectedCompanyIds, etc.)
-- [x] "Get website info" button wires to POST /companies/fetch-websites (DNS + Wikipedia hybrid lookup)
-  - [x] website_lookup.py: DNS suffix stripping, candidate generation, Wikipedia infobox parse, parked domain detection, .nl TLD preference
-  - [x] Backend refactored into app/ package structure
-  - [x] Filter-input component: text input with Filter button + X clear button, placed left of Import/Fetch buttons
-  - [x] GET /companies/search?q= endpoint with LIKE-based name search (paginated)
-  - [x] Filtering resets checkbox selections, shows "Filtering..." loader
-  - [x] Paginator visible during filter (when results span multiple pages)
-  - [x] Import clears active filter
-  - [x] Website lookup preserves active filter after update
