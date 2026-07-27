@@ -1,7 +1,7 @@
 from typing import Optional
 
-from fastapi import APIRouter, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, field_validator
 
 from app.models import (
     get_companies_by_ids,
@@ -20,9 +20,29 @@ router = APIRouter()
 class WebsiteUpdate(BaseModel):
     website_url: Optional[str] = None
 
+    @field_validator("website_url")
+    @classmethod
+    def validate_url(cls, v):
+        if v is None:
+            return v
+        if not v.startswith(("http://", "https://")):
+            raise ValueError("URL must start with http:// or https://")
+        if len(v) > 2000:
+            raise ValueError("URL must not exceed 2000 characters")
+        return v
+
 
 class FetchWebsitesBody(BaseModel):
     company_ids: list[int]
+
+    @field_validator("company_ids")
+    @classmethod
+    def must_not_be_empty(cls, v):
+        if not v:
+            raise ValueError("company_ids must not be empty")
+        if len(v) > 20:
+            raise ValueError("company_ids must not exceed 20 items")
+        return v
 
 
 @router.get("/health")
@@ -40,7 +60,7 @@ def list_companies(
 
 @router.get("/companies/search")
 def list_companies_search(
-    q: str = Query("", min_length=0),
+    q: str = Query("", min_length=0, max_length=200),
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
 ):
@@ -59,7 +79,7 @@ def list_companies_without_website():
 def get_company_by_id(company_id: int):
     company = get_company(company_id)
     if not company:
-        return {"error": "Company not found"}, 404
+        raise HTTPException(status_code=404, detail="Company not found")
     return company
 
 
@@ -67,14 +87,14 @@ def get_company_by_id(company_id: int):
 def update_website(company_id: int, body: WebsiteUpdate):
     company = get_company(company_id)
     if not company:
-        return {"error": "Company not found"}, 404
+        raise HTTPException(status_code=404, detail="Company not found")
     set_company_website(company_id, body.website_url)
     return get_company(company_id)
 
 
 @router.post("/companies/fetch-websites")
 def fetch_company_websites(body: FetchWebsitesBody):
-    companies = get_companies_by_ids(body.company_ids[:20])
+    companies = get_companies_by_ids(body.company_ids)
     kvk_list = [
         {"kvk_number": c["kvk_number"], "name": c["name"]}
         for c in companies

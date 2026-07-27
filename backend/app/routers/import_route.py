@@ -1,13 +1,17 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.models import company_count, sync_sponsors
 from app.services.ind_scraper import fetch_sponsors
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/import")
-def import_sponsors():
+@limiter.limit("3/hour")
+def import_sponsors(request: Request):
     sponsors = fetch_sponsors()
     result = sync_sponsors(sponsors)
     return {
