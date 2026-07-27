@@ -23,8 +23,8 @@ backend/    Python + FastAPI + SQLite
 
 ```bash
 cd backend
-python3 -m venv .venv
-source .venv/bin/activate
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
@@ -43,7 +43,7 @@ App runs at `http://localhost:5173`.
 
 ## Database
 
-Companies and their website URLs are stored in a local SQLite database at `backend/companies.db`. The database is created automatically on first run.
+Companies and their website URLs are stored in a local SQLite database at `backend/hsm.db`. The database is created automatically on first run.
 
 ## Data source
 
