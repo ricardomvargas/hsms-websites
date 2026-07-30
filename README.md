@@ -21,13 +21,41 @@ backend/    Python + FastAPI + SQLite
 
 ### Backend
 
+<details>
+<summary><b>Linux / macOS</b></summary>
+
 ```bash
 cd backend
-python -m venv .venv
-.venv\Scripts\activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
+</details>
+
+<details>
+<summary><b>Windows (PowerShell)</b></summary>
+
+```powershell
+cd backend
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+</details>
+
+<details>
+<summary><b>Windows (cmd)</b></summary>
+
+```cmd
+cd backend
+python -m venv .venv
+.venv\Scripts\activate.bat
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+</details>
 
 API runs at `http://localhost:8000`.
 
