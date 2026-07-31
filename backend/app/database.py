@@ -1,7 +1,9 @@
 import sqlite3
 from contextlib import contextmanager
 
-DB_PATH = "hsm.db"
+from app.config import settings
+
+DB_PATH = settings.db_path
 
 
 @contextmanager

@@ -8,13 +8,15 @@ import dns.resolver
 import requests
 from bs4 import BeautifulSoup
 
+from app.config import settings
+
 WIKI_API = "https://en.wikipedia.org/w/api.php"
 
 # Shared resolver used by _dns_resolves. The lifetime bounds the total
 # lookup time per call, which socket.setdefaulttimeout cannot do without
 # mutating a process-wide global that affects all socket operations.
 _RESOLVER = dns.resolver.Resolver()
-_RESOLVER.lifetime = 5
+_RESOLVER.lifetime = settings.dns_lifetime
 
 # Words stripped from the company name before generating domain candidates.
 # Only true legal entity suffixes and geography words that are virtually
@@ -207,7 +209,9 @@ def _follow_js_redirect(url: str, html: str) -> Optional[str]:
     if target:
         absolute_url = urljoin(url, target)
         try:
-            resp = requests.get(absolute_url, timeout=8, allow_redirects=True)
+            resp = requests.get(
+                absolute_url, timeout=settings.http_timeout, allow_redirects=True
+            )
             return resp.url
         except requests.RequestException:
             return None
@@ -226,7 +230,7 @@ def _check_url(url: str) -> Optional[str]:
     - A JS/meta refresh redirect leads to a known marketplace
     """
     try:
-        resp = requests.get(url, timeout=8, allow_redirects=True)
+        resp = requests.get(url, timeout=settings.http_timeout, allow_redirects=True)
         final_url = resp.url.lower()
 
         if any(mp in final_url for mp in PARKED_MARKETPLACES):
@@ -282,7 +286,7 @@ def _lookup_wikipedia(company_name: str) -> Optional[str]:
                 "format": "json",
                 "srlimit": 3,
             },
-            timeout=10,
+            timeout=settings.wiki_timeout,
         )
         search_resp.raise_for_status()
         search_data = search_resp.json()
@@ -301,7 +305,7 @@ def _lookup_wikipedia(company_name: str) -> Optional[str]:
                 "section": 0,
                 "format": "json",
             },
-            timeout=10,
+            timeout=settings.wiki_timeout,
         )
         parse_resp.raise_for_status()
         html = parse_resp.json().get("parse", {}).get("text", {}).get("*", "")
