@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
@@ -6,13 +7,15 @@ from pydantic import BaseModel, field_validator
 from app.models import (
     get_companies_by_ids,
     get_companies_paginated,
-    get_companies_without_website,
+    get_companies_without_website_paginated,
     get_company,
     search_companies_paginated,
     set_company_website,
     set_company_website_by_kvk,
 )
 from app.services.website_lookup import find_websites
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -51,9 +54,7 @@ def health():
 
 
 @router.get("/companies")
-def list_companies(
-    page: int = Query(1, ge=1), per_page: int = Query(20, ge=1, le=100)
-):
+def list_companies(page: int = Query(1, ge=1), per_page: int = Query(20, ge=1, le=100)):
     items, total = get_companies_paginated(page, per_page)
     return {"items": items, "total": total, "page": page, "per_page": per_page}
 
@@ -71,8 +72,11 @@ def list_companies_search(
 
 
 @router.get("/companies/without-website")
-def list_companies_without_website():
-    return get_companies_without_website()
+def list_companies_without_website(
+    page: int = Query(1, ge=1), per_page: int = Query(20, ge=1, le=100)
+):
+    items, total = get_companies_without_website_paginated(page, per_page)
+    return {"items": items, "total": total, "page": page, "per_page": per_page}
 
 
 @router.get("/companies/{company_id}")
@@ -106,5 +110,9 @@ def fetch_company_websites(body: FetchWebsitesBody):
     for kvk, website in results.items():
         set_company_website_by_kvk(kvk, website)
         updated += 1
+
+    logger.info(
+        "Website fetch finished: %d companies, %d updated", len(kvk_list), updated
+    )
 
     return {"total": len(kvk_list), "updated": updated, "results": results}

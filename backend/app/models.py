@@ -1,7 +1,10 @@
+import logging
 import sqlite3
 from typing import Optional
 
 from app.database import get_connection
+
+logger = logging.getLogger(__name__)
 
 
 def insert_company(name, kvk_number):
@@ -13,6 +16,7 @@ def insert_company(name, kvk_number):
             )
         return True
     except sqlite3.IntegrityError:
+        logger.info("Company %s (kvk %s) already exists, skipped", name, kvk_number)
         return False
 
 
@@ -71,12 +75,18 @@ def company_count():
     return count
 
 
-def get_companies_without_website():
+def get_companies_without_website_paginated(page: int, per_page: int):
     with get_connection() as conn:
+        offset = (page - 1) * per_page
         rows = conn.execute(
-            "SELECT * FROM companies WHERE website_url IS NULL ORDER BY name"
+            "SELECT * FROM companies WHERE website_url IS NULL "
+            "ORDER BY name LIMIT ? OFFSET ?",
+            (per_page, offset),
         ).fetchall()
-    return [dict(row) for row in rows]
+        total = conn.execute(
+            "SELECT COUNT(*) FROM companies WHERE website_url IS NULL"
+        ).fetchone()[0]
+    return [dict(row) for row in rows], total
 
 
 def get_companies_by_ids(ids: list[int]):
@@ -138,6 +148,13 @@ def sync_sponsors(sponsors):
 
         for kvk in to_remove:
             conn.execute("DELETE FROM companies WHERE kvk_number = ?", (kvk,))
+
+    logger.info(
+        "Sync complete: %d inserted, %d updated, %d removed",
+        len(to_insert),
+        len(to_update_name),
+        len(to_remove),
+    )
 
     return {
         "inserted": len(to_insert),

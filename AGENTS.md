@@ -17,6 +17,13 @@ A web app that helps users find website URLs for Dutch Highly Skilled Migrant vi
 - CSS with BEM methodology (no CSS frameworks or component libraries)
 - Simple, clean UI with pure HTML + CSS
 
+## Backend Conventions
+- **Config:** all tunables live in `app/config.py` as a `settings` singleton (pydantic-settings). Import it (`from app.config import settings`) — never hardcode paths/timeouts/limits. Values can be overridden via env vars or a `backend/.env` file (see `.env.example`).
+- **Database:** always access the DB through the `get_connection()` context manager (`with get_connection() as conn:`). It commits on success and always closes the connection.
+- **Logging:** use a module-level `logger = logging.getLogger(__name__)` and log meaningful events (external HTTP calls, batch results, errors). Do not `print()`.
+- **DNS resolution:** use dnspython (`dns.resolver`), not the `socket` module, so timeouts are per-call and don't mutate global state.
+- **Pagination:** list endpoints follow the same pattern as `/companies` — `page`/`per_page` query params, response `{items, total, page, per_page}`.
+
 ## Component Structure
 Components follow this folder convention:
 ```
@@ -115,16 +122,18 @@ src/components/
 │   └── tsconfig.json
 ├── backend/           # Python + FastAPI
 │   ├── .venv/         # Python virtual environment
+│   ├── .env.example   # Template for optional local env overrides
 │   ├── app/           # Application source code
 │   │   ├── main.py    # FastAPI app, router includes, lifespan
-│   │   ├── database.py    # DB connection + schema init
+│   │   ├── config.py  # settings singleton (pydantic-settings)
+│   │   ├── database.py    # DB connection (context manager) + schema init
 │   │   ├── models.py      # Query functions + sync logic
 │   │   ├── routers/
 │   │   │   ├── companies.py   # /companies, /health, /search endpoints
 │   │   │   └── import_route.py # /import endpoint
 │   │   └── services/
 │   │       ├── ind_scraper.py    # IND website scraper
-│   │       └── website_lookup.py # DNS + Wikipedia website discovery
+│   │       └── website_lookup.py # DNS (dnspython) + Wikipedia website discovery
 │   └── requirements.txt
 ├── AGENTS.md          # AI context (this file)
 ├── PROJECT.md         # Human-readable project doc

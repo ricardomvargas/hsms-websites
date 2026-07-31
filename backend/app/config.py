@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     wiki_timeout: int = 10
     cors_origins: list[str] = ["http://localhost:5173"]
     import_rate_limit: str = "3/hour"
+    log_level: str = "INFO"
 
 
 settings = Settings()
