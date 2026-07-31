@@ -1,13 +1,20 @@
 import re
-import socket
 import unicodedata
 from typing import Optional
 from urllib.parse import urljoin
 
+import dns.exception
+import dns.resolver
 import requests
 from bs4 import BeautifulSoup
 
 WIKI_API = "https://en.wikipedia.org/w/api.php"
+
+# Shared resolver used by _dns_resolves. The lifetime bounds the total
+# lookup time per call, which socket.setdefaulttimeout cannot do without
+# mutating a process-wide global that affects all socket operations.
+_RESOLVER = dns.resolver.Resolver()
+_RESOLVER.lifetime = 5
 
 # Words stripped from the company name before generating domain candidates.
 # Only true legal entity suffixes and geography words that are virtually
@@ -167,10 +174,9 @@ def _generate_domains(name: str) -> list[str]:
 def _dns_resolves(domain: str) -> bool:
     """Check if a domain has at least one DNS A record."""
     try:
-        socket.setdefaulttimeout(5)
-        socket.gethostbyname(domain)
+        _RESOLVER.resolve(domain, "A")
         return True
-    except (socket.gaierror, OSError):
+    except dns.exception.DNSException:
         return False
 
 

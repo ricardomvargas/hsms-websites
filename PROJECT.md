@@ -104,7 +104,7 @@ Input validation                Validate URLs with pydantic.HttpUrl or a regex. 
 Rate limiting                   Add slowapi or similar middleware on /import and /fetch-websites.                                   ✅ Done (only /import)
 DB management                   Use a context manager (with get_connection() as conn:) so connections are always released, 
                                 even on exceptions.                                                                                 ✅ Done
-Socket timeout                  Pass timeout to socket.getaddrinfo or use dns.resolver instead of mutating global state.
+Socket timeout                  Pass timeout to socket.getaddrinfo or use dns.resolver instead of mutating global state.            ✅ Done
 Config                          Move DB_PATH, timeouts, and other magic values to environment variables or a config file.
 Logging                         Add structured logging with Python's logging module — at least for errors and external HTTP calls.
 Pagination                      Add pagination to /companies/without-website.
