@@ -1,5 +1,9 @@
+import logging
+
 import requests
 from bs4 import BeautifulSoup
+
+logger = logging.getLogger(__name__)
 
 IND_URL = "https://ind.nl/en/public-register-recognised-sponsors/public-register-work"
 
@@ -23,4 +27,5 @@ def fetch_sponsors():
             if name and kvk:
                 sponsors.append({"name": name, "kvk_number": kvk})
 
+    logger.info("Fetched %d sponsors from IND", len(sponsors))
     return sponsors

@@ -1,3 +1,4 @@
+import logging
 import re
 import unicodedata
 from typing import Optional
@@ -9,6 +10,8 @@ import requests
 from bs4 import BeautifulSoup
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 WIKI_API = "https://en.wikipedia.org/w/api.php"
 
@@ -266,7 +269,9 @@ def _lookup_dns(company_name: str) -> Optional[str]:
         url = f"https://{domain}"
         final = _check_url(url)
         if final:
+            logger.info("DNS lookup found %s for %s", final, company_name)
             return final
+    logger.debug("No DNS match for %s", company_name)
     return None
 
 
@@ -323,9 +328,11 @@ def _lookup_wikipedia(company_name: str) -> Optional[str]:
 
         link = td.find("a", href=True)
         if link and link["href"].startswith("http"):
+            logger.info("Wikipedia lookup found %s for %s", link["href"], company_name)
             return link["href"]
 
     except requests.RequestException:
+        logger.warning("Wikipedia lookup failed for %s", company_name)
         return None
 
 
@@ -356,4 +363,6 @@ def find_websites(
     results: dict[str, Optional[str]] = {}
     for company in companies[:20]:
         results[company["kvk_number"]] = find_website(company["name"])
+    found = sum(1 for url in results.values() if url)
+    logger.info("Website lookup for %d companies: %d found", len(results), found)
     return results
